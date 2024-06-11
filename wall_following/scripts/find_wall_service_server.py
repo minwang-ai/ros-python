@@ -2,14 +2,14 @@
 
 import rospy
 from wall_following.srv import FindWall, FindWallResponse
-from find_wall_movement import FindWallMove 
+from wall_finder import WallFinder
 
 
 class FindWallServiceServer:
     def __init__(self):
         self.service_name = "/find_wall"
         
-        self.find_wall = FindWallMove()
+        self.find_wall = WallFinder()
         self.service = rospy.Service(self.service_name, FindWall, self.callback)
         
         rospy.on_shutdown(self.find_wall.stop_robot)
@@ -29,7 +29,7 @@ class FindWallServiceServer:
         rospy.spin()
 
 if __name__ == '__main__':
-    rospy.init_node('find_wall_service_server')
+    rospy.init_node('find_wall_service_server_node')
     service_server = FindWallServiceServer()
     try:
         service_server.spin()

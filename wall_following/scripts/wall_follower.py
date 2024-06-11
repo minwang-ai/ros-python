@@ -5,8 +5,11 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
 from find_wall_service_client import FindWallServiceClient  # Import the service client
+from record_odom_action_client import RecordOdomActionClient  # Import the action client
 
-class WallFollow():
+import threading
+
+class WallFollower():
     def __init__(self):
     
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -102,24 +105,59 @@ class WallFollow():
         self.pub.publish(self.move_cmd)  # Publish the stop command
 
         
+    def odom_monitor_thread(self, action_client, wall_follower):
+        rate = rospy.Rate(1)
+        while not rospy.is_shutdown():
+            if action_client.is_goal_successful():
+                rospy.loginfo("Goal has been completed for a lap, stop the robot...")
+                wall_follower.stop()
+                break
+            rate.sleep()
+
+        result = action_client.check_goal_status()
+        rospy.loginfo(f"Recording finished with result: {result}")
+
 
 
 if __name__ =='__main__':
-    rospy.init_node("wall_follow_node", anonymous=True)
-    wall_follow = WallFollow()
+    rospy.init_node("wall_follower_node", anonymous=True)
+    wall_follow = WallFollower()
+
+    record_odom_action_client = RecordOdomActionClient()
+    find_wall_service_client = FindWallServiceClient()
+
     try:
         # Call the service before starting wall-following behavior
-        find_wall_client = FindWallServiceClient()
-        wall_found = find_wall_client.send_request()
+        wall_found = find_wall_service_client.send_request()
         rospy.loginfo(f"Wall found: {wall_found} ...")
 
         if wall_found:
-            rospy.loginfo("Wall found, starting wall-following behavior")
-            wall_follow.start()
-            wall_follow.move() 
+            rospy.loginfo("Start to record odom ...")
+            goal_sent = record_odom_action_client.send_goal()
+
+            if goal_sent:
+                while not record_odom_action_client.is_goal_active():
+                    rospy.sleep(0.1)
+
+                # Start monitoring odometry in a separate thread
+                odom_thread = threading.Thread(target=wall_follow.odom_monitor_thread, args=(record_odom_action_client,))
+                odom_thread.start()
+
+                # Start wall-following behavior in the main thread
+
+                rospy.loginfo("Recording odometry started successfully, starting wall-following behavior")
+                wall_follow.start()
+                wall_follow.move() 
+                
+
+            else:
+                rospy.logerr("Failed to start odometry recording. Shutting down.")
+                rospy.signal_shutdown("Failed to start odometry recording")
+
         else:
             rospy.logerr("Failed to find the wall. Shutting down.")
             rospy.signal_shutdown("Failed to find wall")
+        
 
     except rospy.ROSInterruptException:
         wall_follow.stop()

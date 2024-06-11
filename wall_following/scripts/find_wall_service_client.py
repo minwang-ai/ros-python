@@ -32,7 +32,7 @@ class FindWallServiceClient:
 
 
 if __name__ == '__main__':
-    rospy.init_node('find_wall_service_client', anonymous=True)
+    rospy.init_node('find_wall_service_client_node', anonymous=True)
     service_client = FindWallServiceClient()
     try:
         service_client.send_request()

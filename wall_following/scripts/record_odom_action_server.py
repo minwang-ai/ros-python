@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 import rospy
 import actionlib
-from wall_following.msg import OdomRecordFeedback, OdomRecordResult, OdomRecordAction
-from record_odom import OdometryRecorder
+from wall_following.msg import RecordOdomFeedback, RecordOdomResult, RecordOdomAction
+from odom_recorder import OdomRecorder
 
 class OdomRecordActionServer:
     def __init__(self):
         # Initialize the action server
         self.name = "record_odom"
-        self._as = actionlib.SimpleActionServer(self.name, OdomRecordAction, self.goal_callback, False)
-        self._feedback = OdomRecordFeedback()  
-        self._result = OdomRecordResult()      
+        self._as = actionlib.SimpleActionServer(self.name, RecordOdomAction, self.goal_callback, False)
+        self._feedback = RecordOdomFeedback()  
+        self._result = RecordOdomResult()      
 
         self._as.start()
-        self._recorder = OdometryRecorder()
+        self._recorder = OdomRecorder()
         self.rate = rospy.Rate(1)  # Record odometry at 1 Hz
         rospy.loginfo(f"Action server {self.name} has been initialized")
 
@@ -36,7 +36,7 @@ class OdomRecordActionServer:
 
             # Check if the robot has completed a lap
             if self._recorder.has_completed_lap():
-                rospy.loginfo("Lap completed")
+                rospy.loginfo("Lap completed, need to stop the robot")
                 break
 
             self.rate.sleep()
@@ -47,10 +47,9 @@ class OdomRecordActionServer:
             
             self._recorder.stop_recording()
             self._result.list_of_odoms = self._recorder.get_odometry_list()
-            self._result.current_total = self._recorder.get_total_distance()
             self._as.set_succeeded(self._result)
 
 if __name__ == '__main__':
-    rospy.init_node('odom_record_action_server')
+    rospy.init_node('record_odom_action_server_node')
     server = OdomRecordActionServer()
     rospy.spin()

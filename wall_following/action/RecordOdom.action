@@ -1,0 +1,8 @@
+# goal
+# No goal variable required for this action
+---
+# Result
+geometry_msgs/Point32[] list_of_odoms
+---
+# Feedback
+float32 current_total

@@ -1,4 +1,4 @@
 <launch>
     <!-- My Package launch file -->
-    <node pkg="wall_following" type="wall_follower.py" name="wall_following_node"  output="screen"/>
+    <node pkg="wall_following" type="wall_follower.py" name="wall_follower_node"  output="screen"/>
 </launch>

@@ -4,7 +4,7 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point32
 import math
 
-class OdometryRecorder:
+class OdomRecorder:
     def __init__(self):
         self._odom_sub = rospy.Subscriber('/odom', Odometry, self._odom_callback)
         self._start_position = None
@@ -44,11 +44,12 @@ class OdometryRecorder:
     def get_odometry_list(self):
         return self._odometry_list
 
-    def has_completed_lap(self, tolerance=0.1):
+    def has_completed_lap(self, tolerance=0.5):
         if self._start_position is None:
             return False
         distance_to_start = math.sqrt(
             (self._current_position.x - self._start_position.x) ** 2 +
             (self._current_position.y - self._start_position.y) ** 2
         )
+        rospy.loginfo(f"Current distance to start point: {distance_to_start} meters.")
         return distance_to_start <= tolerance

@@ -4,7 +4,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
-class FindWallMove:
+class WallFinder:
     def __init__(self):
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         self.sub = rospy.Subscriber('/scan', LaserScan, self.laser_callback)
