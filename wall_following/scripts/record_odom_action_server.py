@@ -31,13 +31,16 @@ class OdomRecordActionServer:
                 self._recorder.stop_recording()
                 return
 
+            rospy.loginfo("sending feedback ...")
             self._feedback.current_total = self._recorder.get_total_distance()
             self._as.publish_feedback(self._feedback)
 
-            # Check if the robot has completed a lap
-            if self._recorder.has_completed_lap():
-                rospy.loginfo("Lap completed, need to stop the robot")
-                break
+            # Check if the robot has completed a lap after travelling a bit
+            if self._recorder.get_total_distance() > 2:
+                rospy.loginfo("checking if finish a lap ...")
+                if self._recorder.has_completed_lap():
+                    rospy.loginfo("Lap completed, need to stop the robot")
+                    break
 
             self.rate.sleep()
         

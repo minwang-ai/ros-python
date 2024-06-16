@@ -12,9 +12,9 @@ class RecordOdomActionClient:
 
     def create_action_client(self):
         self.client = actionlib.SimpleActionClient(self.action_server_name, RecordOdomAction)
-        rospy.loginfo('Waiting for action Server'+ self.action_server_name + "to start")
+        rospy.loginfo('Waiting for action Server'+ self.action_server_name + " to start")
         self.client.wait_for_server()
-        rospy.loginfo('Action Server '+ self.action_server_name + "started")
+        rospy.loginfo('Action Server '+ self.action_server_name + " started")
 
     def feedback_callback(self, feedback):
         # The feedback callback will be called whenever feedback is received.
@@ -47,8 +47,6 @@ class RecordOdomActionClient:
     def is_goal_successful(self):
 
         state_result = self.client.get_state()
-
-        rate = rospy.Rate(10)
 
         if state_result == GoalStatus.SUCCEEDED:
             rospy.loginfo("Goal is completed successfully")

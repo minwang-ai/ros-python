@@ -16,6 +16,7 @@ class OdomRecorder:
 
     def _odom_callback(self, msg):
         if self._record:
+
             self._current_position.x = msg.pose.pose.position.x
             self._current_position.y = msg.pose.pose.position.y
             self._current_position.z = 0  # Ignoring z axis for 2D odometry
@@ -26,6 +27,10 @@ class OdomRecorder:
                     (self._current_position.y - self._previous_position.y) ** 2
                 )
                 self._total_distance += distance
+
+            if self._start_position is None:
+                self._start_position = Point32(self._current_position.x, self._current_position.y, 0)
+                rospy.loginfo(f"start position x: {self._start_position.x}; y: {self._start_position.y} ")
 
             self._previous_position = Point32(self._current_position.x, self._current_position.y, 0)
             self._odometry_list.append(Point32(self._current_position.x, self._current_position.y, 0))
@@ -44,9 +49,11 @@ class OdomRecorder:
     def get_odometry_list(self):
         return self._odometry_list
 
-    def has_completed_lap(self, tolerance=0.5):
+    def has_completed_lap(self, tolerance=0.1):
         if self._start_position is None:
+            rospy.logwarn("start position not set yet")
             return False
+
         distance_to_start = math.sqrt(
             (self._current_position.x - self._start_position.x) ** 2 +
             (self._current_position.y - self._start_position.y) ** 2
